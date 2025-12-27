@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: JamaTxt Backend Infrastructure
+
+Resources:
+  # 1. The Database (PostgreSQL)
+  JamaTxtDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: '20'
+      DBInstanceClass: db.t4g.micro
+      Engine: postgres
+      MasterUsername: postgres
+      MasterUserPassword: "luhar123"
+      PubliclyAccessible: false
+
+  # 2. The Message Queue (Throttling)
+  SmsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 30
+
+  # 3. The Brain (Lambda)
+  JamatxtFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs18.x
+      CodeUri: s3://jamatxt-builds/v1.zip # We will link this to GitHub later
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /sms
+            Method: post
